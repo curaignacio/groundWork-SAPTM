@@ -1,4 +1,4 @@
-# SAP TM Assistant
+# [gW] SAP TM Assistant
 
 A source-grounded assistant for SAP TM, built with groundWork. It answers from its own
 source materials only — when something isn't covered, it says so and tells you where to
