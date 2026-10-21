@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{Subject} — Questionnaire</title>
+<style>
+:root{
+  --bg:#fbfbfa; --panel:#fff; --ink:#1a1a18; --ink-soft:#5c5c57; --ink-faint:#8a8a84;
+  --rule:#e4e4e0; --rule-soft:#efefec; --accent:#2f6f62; --accent-soft:#e8f0ee;
+  --ok:#1d7a4f; --ok-soft:#e6f4ec; --bad:#b3372f; --bad-soft:#fbeceb;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#15161a; --panel:#1c1e23; --ink:#e8e8e4; --ink-soft:#a8a8a2; --ink-faint:#77776f;
+    --rule:#2d3038; --rule-soft:#24262b; --accent:#6fb3a1; --accent-soft:#1f2a28;
+    --ok:#4cb882; --ok-soft:#16281f; --bad:#e2766d; --bad-soft:#2a1b1a;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:720px;margin:0 auto;padding:28px 20px 90px}
+
+header.mast h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em;font-weight:680}
+header.mast .sub{font-size:14px;color:var(--ink-soft);margin:0 0 6px}
+header.mast .lede{font-size:14px;color:var(--ink-faint);margin:0}
+
+/* controls */
+.filters{display:flex;flex-wrap:wrap;gap:7px;margin:22px 0 0}
+.filters button{
+  cursor:pointer;background:var(--panel);color:var(--ink-soft);border:1px solid var(--rule);
+  border-radius:999px;padding:6px 13px;font:inherit;font-size:13px;
+}
+.filters button:hover{color:var(--ink);border-color:var(--ink-faint)}
+.filters button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+@media (prefers-color-scheme:dark){.filters button[aria-pressed="true"]{color:#10211d}}
+
+.bar{
+  display:flex;align-items:center;gap:14px;margin:16px 0 0;padding:11px 14px;
+  background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+  font-size:13px;color:var(--ink-soft);
+}
+.bar .pos{font-variant-numeric:tabular-nums}
+.bar .score{margin-left:auto;font-variant-numeric:tabular-nums}
+.bar .score b{color:var(--ink);font-weight:650}
+.bar label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.track{height:3px;background:var(--rule);border-radius:2px;margin:10px 0 0;overflow:hidden}
+.track>i{display:block;height:100%;background:var(--accent);width:0;transition:width .18s ease}
+
+/* card */
+.card{
+  background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--unit,var(--accent));
+  border-radius:12px;padding:22px;margin:18px 0 0;
+}
+.card .unit{
+  font-size:11px;text-transform:uppercase;letter-spacing:.09em;font-weight:650;
+  color:var(--unit,var(--accent));margin-bottom:9px;
+}
+.card .stem{font-size:17px;line-height:1.5;margin:0 0 17px;font-weight:600}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{
+  display:flex;gap:11px;text-align:left;cursor:pointer;width:100%;
+  background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:9px;
+  padding:12px 14px;font:inherit;font-size:15px;line-height:1.45;
+}
+.opts button:hover:not(:disabled){border-color:var(--accent)}
+.opts button:disabled{cursor:default}
+.opts button .k{
+  flex:0 0 auto;color:var(--ink-faint);font-weight:650;font-size:13px;padding-top:2px;
+  font-variant-numeric:tabular-nums;
+}
+.opts button.correct{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.correct .k{color:var(--ok)}
+.opts button.wrong{background:var(--bad-soft);border-color:var(--bad)}
+.opts button.wrong .k{color:var(--bad)}
+.opts button.muted{opacity:.5}
+
+.verdict{margin:17px 0 0;padding:14px 16px;border-radius:9px;font-size:14.5px;line-height:1.55}
+.verdict.good{background:var(--ok-soft);color:var(--ink)}
+.verdict.poor{background:var(--bad-soft);color:var(--ink)}
+.verdict b{display:block;margin-bottom:4px;font-weight:680}
+.verdict.good b{color:var(--ok)}
+.verdict.poor b{color:var(--bad)}
+
+.nav{display:flex;gap:10px;margin:18px 0 0}
+.nav button{
+  cursor:pointer;background:var(--panel);color:var(--ink-soft);border:1px solid var(--rule);
+  border-radius:9px;padding:11px 18px;font:inherit;font-size:14px;
+}
+.nav button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+@media (prefers-color-scheme:dark){.nav button.primary{color:#10211d}}
+.nav button:hover:not(:disabled){border-color:var(--accent)}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav .right{margin-left:auto;display:flex;gap:10px}
+
+/* summary */
+.summary{
+  background:var(--panel);border:1px solid var(--rule);border-radius:12px;
+  padding:28px 24px;margin:18px 0 0;text-align:center;
+}
+.summary .big{font-size:40px;font-weight:700;letter-spacing:-.03em;margin:0 0 2px;font-variant-numeric:tabular-nums}
+.summary .of{font-size:14px;color:var(--ink-faint);margin:0 0 20px}
+.summary h2{font-size:15px;margin:24px 0 10px;font-weight:650}
+.summary ol{text-align:left;margin:0;padding-left:22px;font-size:14.5px;color:var(--ink-soft)}
+.summary ol li{margin-bottom:9px}
+.summary .acts{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.empty{color:var(--ink-faint);padding:50px 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============================================================
+     FILL PER COMPILE — questionnaire writes only this block.
+     ============================================================
+     SUBJECT        the assistant's subject, from CLAUDE.md
+     DOMAIN         the {DOMAIN} token, from CLAUDE.md. Empty string is fine.
+     QUIZ_SUBTITLE  one line under the title
+     QUIZ_LEDE      one line of instruction for the learner
+     UNITS          one entry per session: id "s{n}" -> display label
+     UNIT_ACCENT    one colour per unit id, cycling ACCENTS by session number:
+                      session n uses ACCENTS[(n-1) % 5]
+     FILTER_DEFS    {k:"all",label:"All"} first, then one per unit, in session order
+     BANK           every question from every session's "### Quiz questions" block:
+                      q  stem
+                      o  array of exactly four options
+                      a  zero-based index of the correct option, 0-3
+                      e  explanation
+                      u  unit id, matching a UNITS key
+     LABELS         the interface text, in the learning language. Leave it empty
+                    for English. Otherwise give every key, translated, keeping
+                    the {placeholders} as they are:
+                      questionnaire filter shuffle empty correct complete
+                      question ("Question {n} of {total}") right wrong back
+                      skip next results summary ("{right} of {done} answered
+                      correctly") skipped ("{n} skipped") revisit retry restart
+                    The "All" filter label and the UNITS labels are written in
+                    the learning language too.
+     ============================================================ -->
+<script>
+const SUBJECT       = "SAP TM";
+const DOMAIN        = "SAP S/4HANA Transportation Management (SAP TM)";
+const QUIZ_SUBTITLE = "Self-assessment across 15 sessions";
+const QUIZ_LEDE     = "Pick an answer to see whether it is right and why.";
+const LABELS        = {};
+
+const ACCENTS = ["#2f6f62","#7a5ea7","#b06a2c","#2c6a9e","#a2455f"];
+
+const UNITS       = { s1:"Session 01 · SAP TM in SAP S/4HANA: Overview and Fiori Experience", s2:"Session 02 · Business Partners and the Organizational Model", s3:"Session 03 · Locations, Zones, Trade Lanes, Modes and Resources", s4:"Session 04 · Forwarding Orders and Quotations", s5:"Session 05 · Logistics Integration with Sales, Purchasing and Deliveries", s6:"Session 06 · Planning: Freight Units, Cockpit and Carrier Selection", s7:"Session 07 · Freight Order Management and Execution", s8:"Session 08 · Agreement Management, Strategic Freight Procurement and Carrier Collaboration", s9:"Session 09 · Charge Calculation and Freight Agreements", s10:"Session 10 · Settlement", s11:"Session 11 · Warehouse and Trade Integration (EWM, Advanced Shipping and Receiving, GTS)", s12:"Session 12 · Dangerous Goods and Basic Functions", s13:"Session 13 · Analytics", s14:"Session 14 · Enterprise Services, ESR Content and BRFplus", s15:"Session 15 · Clean Core and RISE with SAP Methodology" };
+const UNIT_ACCENT = { s1:ACCENTS[0], s2:ACCENTS[1], s3:ACCENTS[2], s4:ACCENTS[3], s5:ACCENTS[4], s6:ACCENTS[0], s7:ACCENTS[1], s8:ACCENTS[2], s9:ACCENTS[3], s10:ACCENTS[4], s11:ACCENTS[0], s12:ACCENTS[1], s13:ACCENTS[2], s14:ACCENTS[3], s15:ACCENTS[4] };
+const FILTER_DEFS = [ { k:"all", label:"All" }, { k:"s1", label:"Session 01" }, { k:"s2", label:"Session 02" }, { k:"s3", label:"Session 03" }, { k:"s4", label:"Session 04" }, { k:"s5", label:"Session 05" }, { k:"s6", label:"Session 06" }, { k:"s7", label:"Session 07" }, { k:"s8", label:"Session 08" }, { k:"s9", label:"Session 09" }, { k:"s10", label:"Session 10" }, { k:"s11", label:"Session 11" }, { k:"s12", label:"Session 12" }, { k:"s13", label:"Session 13" }, { k:"s14", label:"Session 14" }, { k:"s15", label:"Session 15" } ];
+const BANK        = [
+  { u:"s1", q:"Until when is the LE-TRA code line kept within SAP S/4HANA Enterprise Management?", o:["End of 2025", "End of 2030", "End of 2035", "The 2020 release"], a:1, e:"LE-TRA is part of the compatibility scope, and its code line is kept within SAP S/4HANA Enterprise Management until end of 2030 (S4611, Basic Shipping - LE-TRA and TM)." },
+  { u:"s1", q:"Which TM object replaces the LE-TRA shipment in the long term?", o:["The freight unit", "The delivery-based transportation requirement", "The freight agreement", "The freight order"], a:3, e:"S4611 states that long term the shipment from LE-TRA will be replaced by the freight order from TM." },
+  { u:"s1", q:"What does advanced transportation management allow that basic shipping does not?", o:["Early planning based on orders as well as on deliveries", "Posting goods issue for outbound deliveries directly in TM", "Creating outbound deliveries directly from sales orders", "Maintaining business partner master data for carriers"], a:0, e:"Advanced TM allows early planning based on orders (sales orders, purchase orders, MM scheduling agreements) in addition to planning based on deliveries, which is the only option in basic shipping (S4611)." },
+  { u:"s1", q:"What is the correct sequence of the five main stages of TM?", o:["Transportation Planning, Requirements and Order Management, Transportation Execution, Analytics and Collaboration, Freight Costing and Settlement", "Transportation Execution, Transportation Planning, Requirements and Order Management, Freight Costing and Settlement, Analytics and Collaboration", "Requirements and Order Management, Transportation Planning, Transportation Execution, Freight Costing and Settlement, Analytics and Collaboration", "Requirements and Order Management, Transportation Execution, Transportation Planning, Analytics and Collaboration, Freight Costing and Settlement"], a:2, e:"S48600 lists the five stages in this order: Requirements and Order Management, Transportation Planning, Transportation Execution, Freight Costing and Settlement, Analytics and Collaboration." },
+  { u:"s1", q:"What is the smallest planning unit used in transportation planning?", o:["The freight order", "The freight unit", "The order-based transportation requirement", "The freight settlement document"], a:1, e:"S48600 describes a freight unit as the smallest planning unit used in transportation planning, representing a collection of goods that can be transported together throughout the complete transportation process chain." },
+  { u:"s1", q:"What is the freight settlement document (FSD) used for?", o:["To verify the carrier invoice", "To represent a contract with the carrier", "To represent demand from a sales, purchase or stock transport order", "To represent a set of goods transported together"], a:0, e:"In the S48600 table of common terms, the freight settlement document is the object used to verify the carrier invoice; the contract with the carrier is the freight agreement." },
+  { u:"s1", q:"What is a catalog in the SAP Fiori launchpad?", o:["A collection of pages inside a space", "The semantic structure of the content of a page", "The entry point for a business role", "A set of tiles made available for one role"], a:3, e:"S48600 defines a catalog as a set of tiles that you want to make available for one role; catalogs are assigned to business roles. A space is the entry point for a business role." },
+  { u:"s1", q:"Which SAP Fiori app type uses the analytical capabilities of SAP HANA?", o:["Transactional apps", "Fact sheet apps", "Analytical apps", "SAP CoPilot apps"], a:2, e:"S4611 states that analytical apps use the analytical capabilities of SAP HANA to provide insights in business data; transactional apps use ABAP and fact sheet apps use Enterprise Search." },
+  { u:"s1", q:"Which business catalog covers Transportation – Planning for the Transportation Manager role?", o:["SAP_TM_BC_OM", "SAP_TM_BC_PLN", "SAP_TM_BC_STLM", "SAP_TM_BC_CTRM"], a:1, e:"H02 lists SAP_TM_BC_PLN as the technical name of Transportation – Planning; SAP_TM_BC_OM is Order Management, SAP_TM_BC_STLM Settlement and SAP_TM_BC_CTRM Contract Management." },
+  { u:"s1", q:"What does the Personal Object Worklist (POWL) let users do?", o:["Replace the business catalogs assigned to a role with personal tile groups", "Generate freight units directly from sales orders and purchase orders", "Define and store queries in a similar way to ERP selection screen variants", "Assign business roles to users and manage their launchpad catalogs"], a:2, e:"S48600 describes the POWL as giving central, personalized access to document lists, where users can define and optionally store queries similar to SAP ERP selection screen variants." },
+  { u:"s2", q:"Which business partner role contains the data of role FLVN01 (Vendor) plus TM-specific data such as SCAC Codes and Airline Codes?", o:["TM0001 (Driver)", "FLCU01 (Customer)", "CRM010 (Carrier)", "BUP004 (Organizational Unit)"], a:2, e:"H03 states that the role CRM010 (Carrier) contains the data of role FLVN01 (Vendor) plus additional TM-specific data such as Regulated Agent Code, IATA Agent Code, CASS Account, SCAC Codes, Airline Codes and Service Level Codes. The same is shown in E01, Review Carrier Information." },
+  { u:"s2", q:"At which level do the roles FLVN01 (Vendor) and CRM010 (Carrier) allow data to be maintained?", o:["Purchasing organization", "Sales organization level", "Company code level", "Plant or storage location level"], a:0, e:"H03 and E01 state that FLVN01 and CRM010 permit data maintenance at the purchasing organization level, for example order currency and payment terms agreed with the carrier. FI Customer and FI Vendor work at company code level." },
+  { u:"s2", q:"Which role does the system assign automatically when a business partner is first created?", o:["Organizational Unit (BUP004)", "Vendor (FLVN01)", "Carrier (CRM010)", "General Business Partner"], a:3, e:"S4TM2, Lesson 1 - Business Partners, states that when you first create a business partner the BP role General Business Partner is automatically assigned; S48600 (Business Partner) says the same." },
+  { u:"s2", q:"In Customizing the partner function Invoicing Party has source type Partner Function and source function Sold-to Party. A user enters Customer01 as sold-to party. What does the system do?", o:["It leaves the invoicing party empty for manual entry", "It assigns Customer01 as the invoicing party", "It reads the invoicing party from the BP relationship", "It copies the carrier into the invoicing party"], a:1, e:"S4TM2, Business Partner Determination, gives exactly this example. The system copies the business partner entered in the source partner function, so Customer01 becomes the business partner for the invoicing party." },
+  { u:"s2", q:"Which BP relationship category is used in the tendering process?", o:["Has Subsidiary / Agent", "Has Employee", "Has Customer", "Has Contact Person"], a:3, e:"H03, Definition of Business Partners, notes that the relationship category Has Contact Person is used in the tendering process, while Has Subsidiary / Agent describes subsidiaries and agents of a carrier organization." },
+  { u:"s2", q:"How many carrier profiles can you create for one carrier?", o:["Only one profile per carrier", "One profile per means of transport", "One profile per purchasing organization", "One profile per transportation lane"], a:0, e:"H03, Carrier Profile, states that carriers are business partners with the role Carrier and that you can only create one profile for each carrier." },
+  { u:"s2", q:"Which TM organizational unit is optional and serves as a single entry point into the organization's structure?", o:["Company organization unit", "Forwarding house", "Corporate organization", "Planning organization unit"], a:2, e:"S48600 (Organizational Structure) and H03 (Organizational Management) describe the corporate organization as optional and a single entry point into the structure in TM; the company organization corresponds to the company code." },
+  { u:"s2", q:"How can a forwarding house be used in TM?", o:["As a sales organization or a corporate organization", "As both a sales and a purchasing organization", "As a purchasing organization or a planning group", "As a company organization or a planning group"], a:1, e:"H03, Organizational Management, states that in TM a forwarding house (function 89, role 1) can be used as a sales organization and as a purchasing organization. S48600 adds that it can handle sales, purchasing and planning/execution activities." },
+  { u:"s2", q:"The material freight group of a material is transferred from the sales order item to which TM object?", o:["The item of the forwarding quotation", "The stop of the freight order", "The leg of the transportation lane", "The freight unit product item"], a:3, e:"S48600, Material Master, states that in TM the material freight group is transferred from the sales order item to the product item of the freight unit; it is used to determine freight classification and freight code." },
+  { u:"s2", q:"What does the BSG Org. Unit field do in SAP S/4HANA TM?", o:["Maps TM units to S/4 org units", "Links business partners to company codes", "Assigns locations to transportation zones", "Connects carriers to purchasing groups"], a:0, e:"S48600, Organizational Structure, states that SAP S/4HANA TM maps its organizational units with S/4 organizational units through the BSG Org. Unit field. H03 adds that it holds the ID used to retrieve sales or purchasing organization-dependent business partner data." },
+  { u:"s3", q:"What role does the location type play in SAP TM?", o:["It controls which business processes can run at the location", "It is only a reference and controls no business process", "It decides which carrier may serve a particular location", "It sets the transportation zone of the location"], a:1, e:"S48600, Locations, states that in TM the location type is used to categorize locations and that location types are not used to control business processes but serve as a reference." },
+  { u:"s3", q:"Which report can be used to create locations for plants, shipping points and business partners?", o:["/SCMTMS/FIND_TN_PATH", "/SCMTMS/ORG_INT", "/SAPAPO/CREATE_LOCATION", "/SAPAPO/LOC_CREATE_ALL"], a:2, e:"S48600, Creating Locations Using a Report, names /SAPAPO/CREATE_LOCATION for this purpose. /SAPAPO/LOC_CREATE is a BAdI used to create locations when a business partner is saved, and /SCMTMS/FIND_TN_PATH is the path finder report." },
+  { u:"s3", q:"A transportation lane exists from location A to location B. How is the reverse direction modeled?", o:["By creating another transportation lane", "By selecting a bidirectional indicator", "By creating a trade lane with orientation To", "By reversing the means of transport"], a:0, e:"S4TM2 (Transportation and Trade Lane) and S48600 (Transportation Lanes) state that a transportation lane points only in one direction and that you must create another lane to model the reverse direction." },
+  { u:"s3", q:"What is required to create a transportation lane?", o:["At least one carrier assigned", "A schedule with fixed departure times", "At least one means of transport assigned", "A default route with several stops defined"], a:2, e:"S48600, Transportation Lanes (Note), states that creating a transportation lane requires the assignment of at least one means of transport; carriers are needed in addition only to enable automatic carrier selection." },
+  { u:"s3", q:"How are trade lanes related to transportation lanes?", o:["Each trade lane generates a transportation lane automatically", "There is no direct link between them", "A trade lane replaces the transportation lane in planning", "Both are maintained on the same screen"], a:1, e:"S4TM2, Trade Lane, and S48600, Trade Lane (Note), state that trade lanes do not replace transportation lanes and that there is no direct link between a trade lane and a transportation lane." },
+  { u:"s3", q:"Which transportation zone type assigns locations through a range of codes for a country or region?", o:["Direct assignment zone", "Country or region zone", "Mixed combination zone", "Postal code zone"], a:3, e:"S48600, Transportation Zones, says that in a postal code zone locations are assigned by specifying a valid postal code range for a country or region. S4TM2 adds that carriers often publish rates for ranges of three-digit zip codes such as 170-173." },
+  { u:"s3", q:"Which rule applies when defining a transportation zone hierarchy?", o:["A zone cannot be assigned to itself", "A zone can be in only one higher-level zone", "A zone can be assigned to a location", "A location can belong to only one zone"], a:0, e:"S48600 states that a transportation zone cannot be assigned to itself or to a zone that already contains it. S4TM2, Transportation Zone Hierarchy, adds that a zone can be assigned to any number of higher-level zones, locations to any number of zones, and a zone cannot be assigned to a location." },
+  { u:"s3", q:"Which of the following does the path finder not take into consideration?", o:["Transshipment locations", "Schedules", "Incompatibilities", "Transportation zones"], a:2, e:"S4TM2, How to Use the Path Finder, states that the path finder does not take incompatibilities into consideration. It does consider locations, transshipment locations, transportation lanes, schedules and transportation zones." },
+  { u:"s3", q:"What must hold for planning to take the capacity of a vehicle resource into account?", o:["The vehicle must be flagged as an active resource", "Dimensions and units match a freight unit building rule", "The vehicle must be assigned to a calendar resource and shift", "A compartment must be defined for the vehicle"], a:1, e:"S4TM2, Resources Overview, and H03 (Vehicle Resource) state that planning can only take the vehicle capacity into account if the dimensions and units of measurement correspond to those defined in a freight unit building rule." },
+  { u:"s3", q:"What is the purpose of a calendar resource?", o:["It provides the capacity to load and unload vehicles", "It models the capacity of a single container", "It represents a trailer that cannot travel alone", "It sets the operating hours of locations"], a:3, e:"S4TM2, Calendar Resource, states that calendar resources determine the operating hours of locations and that loading and unloading can only take place during operating hours. Handling resources provide the loading and unloading capacity." },
+  { u:"s4", q:"What determines the design of the user interface of a forwarding order?", o:["The ordering party and the sales organization entered in the order", "The carrier assigned to the main carriage and the freight agreement", "The transportation mode and the forwarding order type", "The number of order items and the total weight of the goods entered"], a:2, e:"The user interface is determined by the transportation mode (air, sea or land) and by the forwarding order type defined in Customizing (H04, Structure)." },
+  { u:"s4", q:"A forwarding order has just been saved and no freight units or transportation units exist for it yet. Which life cycle status does it have?", o:["New", "In Planning", "Planned", "In Execution"], a:0, e:"New means a forwarding order was created and no freight units or transportation units exist yet; In Planning needs at least one FU or TU (H04, Status of a Forwarding Order)." },
+  { u:"s4", q:"After transportation planning has been performed from a forwarding order, what is true of the actual route?", o:["It is deleted and must be entered again manually", "It is copied automatically into the ordered route", "It stays editable until the first freight order is saved", "It is displayed and can no longer be changed"], a:3, e:"If planning was performed based on the forwarding order, the actual route is displayed and can no longer be changed (H04, Actual Route Resulting from Transportation Planning)." },
+  { u:"s4", q:"How does the ordered route get the data of the actual route, for example to print up-to-date documents?", o:["Automatically whenever the order is saved again, without any user action", "By choosing Copy from Actual Route on the Ordered Route tab", "Automatically once all freight units of the order have been planned", "By splitting the Complete Carriage line into several stages at once"], a:1, e:"The ordered route is not updated automatically; Copy from Actual Route copies the data, but the ordered route is then no longer visible (H04, Copying the Actual Route to the Ordered Route)." },
+  { u:"s4", q:"Which statement about the forwarding order type is correct when creating an order?", o:["The type cannot be changed afterwards in the document itself", "The type can be changed freely as long as no items exist", "The type can be changed once the order has been confirmed", "The type is always taken from the ordering party's master data"], a:0, e:"You cannot change the forwarding order type subsequently in the document, although some other parameters such as the sales organization may still be changed (H04, Creation of a Forwarding Order, Process step 1)." },
+  { u:"s4", q:"In the item hierarchy of a forwarding order, which level is relevant to planning?", o:["The lowest level, for example the product", "The middle level, for example the packaging", "Every level, because each is planned separately", "Only the top level of the hierarchy"], a:3, e:"Items are entered as a hierarchy, but only the top level is relevant to planning; quantities and weights are totaled and copied to the header (H04, Creation of a Forwarding Order, step 6)." },
+  { u:"s4", q:"What effect does a set settlement block have on a forwarding order?", o:["The order can no longer be confirmed to the ordering party", "No forwarding settlement document can be created", "The freight units of the order are deleted", "The order is canceled with a reason code"], a:1, e:"You cannot create a forwarding settlement document if the settlement block is set (H04, Blocking Information of a Forwarding Order)." },
+  { u:"s4", q:"Which life cycle status describes a forwarding quotation that was already sent to the ordering party and then changed, with the changes not yet sent?", o:["Transferred", "Partially Transferred", "Not Transferred", "Awaiting Confirmation"], a:2, e:"Not Transferred means a quotation that was already sent was changed and the changes were not yet sent; Transferred means it was sent (H04, Status of the Forwarding Quotation)." },
+  { u:"s4", q:"What is left out when a template is created from an existing forwarding order?", o:["Dates/times and planning and execution data", "The document type and the general order data", "The sales organization and the Incoterms of the order", "The business partners and the locations of the order"], a:0, e:"The system copies the data of the order, such as document type and order data, into the template with the exception of dates/times and planning and execution data (H04, Creation of a Forwarding Order)." },
+  { u:"s4", q:"In a logistics service provider deployment, which documents count as the transportation requirements?", o:["Sales orders and outbound deliveries from the shipper", "Purchase orders and inbound deliveries from suppliers", "Forwarding orders and forwarding quotations", "Freight orders and freight bookings"], a:2, e:"Forwarding orders are typically created manually in the SAP TM UI or by EDI, and forwarding orders and quotations are considered transportation requirements within an LSP process (S48600, Transportation Requirements Overview)." },
+  { u:"s5", q:"Which of the following can be integrated into TM as an order from SD or MM?", o:["Freight booking for a vessel", "Returns stock transport order", "Freight agreement with a carrier", "Capacity document for a trip"], a:1, e:"The order types listed for integration are sales order, customer returns, purchase order, stock transport order, returns purchase order and returns stock transport order (H05, Order Integration)." },
+  { u:"s5", q:"Which parameter does the system assign to a sales document with activated TM integration and to all relevant documents in its chain, such as the outbound delivery?", o:["TM_PROFILE_ID", "TM_RELEVANCE_FLAG", "TM_FUB_RULE", "TM_CONTROL_KEY"], a:3, e:"When a document with activated integration is created, the system assigns the control key to it (parameter TM_CONTROL_KEY) and to all relevant documents in the document chain (H05, Activate Integration of Sales Documents)." },
+  { u:"s5", q:"In an embedded TM deployment, which object acts as the initial object for SAP TM?", o:["The freight unit, created directly from the original object", "The forwarding order, entered by hand in the TM user interface", "The order-based requirement, replicated from the ERP system", "The freight order, created from the delivery proposal"], a:0, e:"In embedded deployment the original object already exists in SAP S/4HANA and the freight unit acts as the initial object for SAP TM, created directly from it; replication into requirements belongs to side-by-side deployment (S48600, Transportation Requirements Overview)." },
+  { u:"s5", q:"In which order does the system determine the freight unit building rule for a transportation demand?", o:["Rule in the profile, then condition in the profile, then standard settings", "Standard settings first, then condition in the profile, then rule in the profile", "Condition in the profile, then rule in the profile, then standard settings", "Condition in the profile, then standard settings, then rule in the profile"], a:2, e:"The system first reviews the condition in the logistics integration profile, then the freight unit building rule in the profile, and finally applies standard settings (S48600, Freight Unit Building Rules)." },
+  { u:"s5", q:"What does the Advanced stage building variant in the logistics integration profile consider when it builds stages for freight units?", o:["Only the stage profile and its condition", "Incoterm locations 1 and 2", "The planning profile of the freight order", "The shipping point and the delivery type"], a:1, e:"With the Advanced variant the system considers Incoterm locations 1 and 2; with the Static variant a stage profile and stage profile condition determine the stages (H05, Logistics Integration Profile for SD, MM, and LE)." },
+  { u:"s5", q:"Which of the following must be the same for freight units to be consolidated into one delivery proposal?", o:["The carrier of the freight order", "The net weight of the items", "The currency of the order", "The shipping conditions"], a:3, e:"Freight units can be consolidated into the same delivery proposal only if source location, destination location, Incoterms, shipping conditions and document type match, plus start and destination stop if planning is done (H05, Creation of Delivery Proposals)." },
+  { u:"s5", q:"Which report creates deliveries in ERP based on existing freight units?", o:["/SCMTMS/DLV_BATCH", "/SCMTMS/LI_ACTIVATE", "/SCMTMS/FIX_INT_TIMERANGE", "/SCMTMS/SUBSEQENT_FUB_LOGINT"], a:0, e:"/SCMTMS/DLV_BATCH is described as the report to create deliveries based on existing freight units; the others activate documents, fix time range end dates or trigger subsequent freight unit building (H05, Reports for Logistics Integration)." },
+  { u:"s5", q:"The current date is 17 May, the safety margin is seven days (10 May) and the earliest schedule line with open quantity is 8 May. Which integration start date does the system choose?", o:["17 May", "10 May", "8 May", "7 May"], a:2, e:"The earliest schedule line with open quantity precedes the safety margin, so the system chooses 8 May as the start date (H05, Integration Time Range for Purchase Scheduling Agreement, Example)." },
+  { u:"s5", q:"In the advanced intercompany sales example, the Incoterm on the intercompany sales order is CIF. Where does the internal transfer of control occur?", o:["At Incoterm location 1, the port of discharge in Hamburg, Germany", "At Incoterm location 2, when loaded on the vessel", "At the customer's address in Walldorf, on delivery", "At the plant of the delivering company in Palo Alto, California"], a:1, e:"With CIF the internal transfer of control occurs at Incoterm location 2, when the goods are loaded on the vessel, and risk passes from the delivering to the selling company (H05, Example of an Advanced Intercompany Sales Process; Incoterms and Incoterm Locations)." },
+  { u:"s5", q:"In exercise E02, what does the system generate when a freight unit is created based on a preceding document such as a purchase order?", o:["A delivery proposal listing the open quantities of the order", "A freight order with the next available vehicle assigned", "A transportation unit for the receiving warehouse or location", "A document flow with the related documents and statuses"], a:3, e:"When a subsequent document like a freight unit is created from a preceding document such as a purchase order, the system generates a document flow showing the sequence of related documents and their statuses (E02, Create Purchase Order and Review the Freight Unit)." },
+  { u:"s6", q:"A truck has a capacity of 20 tons and 20 tons of flour in 1 kg packages must be moved. How should freight unit building approach the freight unit size?", o:["Create a single freight unit weighing 20 tons", "Create 20,000 freight units of 1 kg each", "Create one freight unit per forwarding order item", "Aim for a size somewhere in the middle of both"], a:3, e:"H07 (Creation and Editing of Freight Units and VSR Optimization) states that neither extreme is advisable for this example: one freight unit of 20 tons or 20,000 units of 1 kg. Large units simplify VSR planning, small units make it harder, so the recommendation is to aim somewhere in the middle." },
+  { u:"s6", q:"Which result does the FUB strategy Consolidate per item produce?", o:["One freight unit for each business document item", "One freight unit for all items of a business document", "One freight unit for items from different documents", "One freight unit for each source and destination pair"], a:0, e:"H07 (Freight Unit Building Rule) explains that with Consolidate per item the system generates one freight unit per business document item, whereas Consolidate per request groups all items of a document and Consolidate as much as possible groups items from different documents." },
+  { u:"s6", q:"You want to transport 5 tons of cement but only in batches of 500 kg, so you define a split quantity of 500 kg in the FUB rule. How many freight units does the system generate?", o:["Five freight units", "Two freight units", "Ten freight units", "Fifty freight units"], a:2, e:"H07 (Planning and Split Quantities) gives exactly this example. The split quantity of 500 kg turns 5 tons into 10 freight units." },
+  { u:"s6", q:"For a business document the system finds no result from the condition entered in the business document type. What does it check next to determine the FUB rule?", o:["The planning profile assigned to the user", "A standard FUB rule in the business document type", "The carrier profile of the transportation lane", "The selection profile of the transportation cockpit"], a:1, e:"H07 (Determination of Freight Unit Building Rules) lists the order. First a condition in the business document type, then a standard FUB rule in the business document type, and finally the default settings." },
+  { u:"s6", q:"Which combination can be assigned to a profile and layout set in the transportation cockpit?", o:["A selection profile, a carrier profile and a resource calendar", "A planning profile, a freight order type and a rate table", "A page layout, a capacity profile and a scheduling strategy", "A selection profile, a planning profile and a page layout"], a:3, e:"S4TM2 (Transportation Cockpit) states that a combination of selection and planning profile together with a page layout can be assigned to a profile and layout set. E03 (How to Select Data for Planning) confirms the three elements." },
+  { u:"s6", q:"In manual planning you assign freight units to a vehicle resource. What does the system create as a result?", o:["A capacity document such as a freight order", "A new freight unit building rule for the vehicle", "A forwarding order for each assigned freight unit", "A transportation proposal for the vehicle resource"], a:0, e:"H07 (Manual Planning) explains that requirement documents such as freight units are assigned to capacities such as vehicle resources and the system creates capacity documents, for example freight orders, which can be processed further." },
+  { u:"s6", q:"How does VSR optimization treat a soft constraint such as a lateness cost?", o:["As a limit it must never violate", "As a warning shown after the run", "As a penalty cost within total costs", "As a filter set in the selection profile"], a:2, e:"S4TM2 (Hard and Soft Constraints) says VSR optimization always adheres to hard constraints, while soft constraints are modeled with penalty costs, for example lateness costs that are part of the total costs." },
+  { u:"s6", q:"In backward scheduling, which activity does the system schedule first?", o:["The first activity of the freight order", "The last activity to be scheduled", "The loading of the heaviest freight unit", "The coupling of the trailer to the truck"], a:1, e:"H07 (Scheduling) states that in backward scheduling the system first defines the start and end time of the last activity to be scheduled and then assigns times to all preceding activities, while forward scheduling starts with the first activity." },
+  { u:"s6", q:"In carrier selection, what are the internal costs that the Costs strategy can use?", o:["Costs used only for weighting, not real costs", "The final charges billed by the carrier", "The costs posted to the freight settlement document", "The penalty costs of the VSR optimizer run"], a:0, e:"H07 (Strategies) notes that the costs used are not real costs but internal costs used for weighting, defined in the transportation lane or in the carrier profile. S4TM2 (Carrier Selection) repeats this." },
+  { u:"s6", q:"What must be entered in the FUB rule so that the system creates freight orders directly instead of freight units?", o:["A transportation unit type with category Container", "A split quantity of zero for the planning quantity", "A planning profile with the strategy VSR_1STEP", "A freight order type as the document type"], a:3, e:"H07 (Automatic Creation of Freight Orders) states that for the shortcut scenario you enter a freight order type, or a condition that determines it, as the document type in the FUB rule. E03 (Compare the Standard and Shortcut Process) shows the freight unit being skipped." },
+  { u:"s7", q:"For which transportation modes does TM create freight bookings instead of freight orders?", o:["Road and rail", "Road and sea", "Air and sea", "Rail and air"], a:2, e:"S4611 (Freight Orders and Freight Bookings) states that for the transportation modes Air and Sea freight bookings are created, and for all other modes freight orders. H06 (Freight Order Management) lists freight orders for road and rail and freight bookings for air and sea." },
+  { u:"s7", q:"When a freight order is created by copying an existing one, what does the system copy?", o:["Header data and logistical data", "References to the freight units", "Execution information such as actual times", "Freight unit assignments and charges"], a:0, e:"H06 (Creation by Copying) and S4611 (Creating Freight Orders) both state that the header data and the logistical data are copied, but references to freight units and execution information are not." },
+  { u:"s7", q:"When the system determines the purchasing and execution organization of a freight document, what does it check first?", o:["Whether the user is assigned to a purchasing organization", "Whether the Consider Organizational Unit of User box is set", "The default organization kept in the document type", "The condition of type /SCMTMS/TOR_ORGUNIT"], a:3, e:"S4611 (Organizational Unit Determination) says the system first checks the condition, then the Consider Organizational Unit of User checkbox and the user assignment, and only then uses the default organization. S4TM2 (Freight Orders) describes the same order." },
+  { u:"s7", q:"In a rail scenario with an invoicing carrier (rule 11 in North America), what does the invoicing carrier do?", o:["It executes every stage of the rail freight order itself", "It invoices the shipper or bill-to party for its stages", "It supplies the locomotive that is planned as main item", "It confirms the loading of the railcars at the source location"], a:1, e:"H06 (Rail Freight Order) defines the invoicing carrier as the carrier that invoices the shipper, or another designated bill-to party, for the charges calculated for the corresponding stages." },
+  { u:"s7", q:"For which kind of order does the SAP Help documentation recommend assigning a driver team?", o:["Time-critical orders such as rush orders", "Orders with several unloading points per day", "Orders executed by a subcontracted carrier", "Orders that contain dangerous goods only"], a:0, e:"H06 (Use of Drivers in Freight Order Management) recommends a driver team for time-critical orders, for example rush orders, because two drivers are in the cabin and take turns driving and sleeping." },
+  { u:"s7", q:"After you choose Send to Carrier on a freight order, which confirmation status does the order show?", o:["Confirmed with Changes", "Invalid Confirmation Received", "No Confirmation Yet", "Update Sent, No Confirmation Yet"], a:2, e:"S4611 (Exercise 6 solution) and E03 (Assign Carriers to Freight Orders) show subcontracting status Sent together with confirmation status No Confirmation Yet after sending. H06 (Statuses) defines that value as the carrier not having sent a confirmation yet." },
+  { u:"s7", q:"In the transportation-driven exercise, why is the outbound delivery order blocked at first?", o:["The warehouse tasks for the delivery have not yet been confirmed", "The transportation team has not signaled warehouse readiness yet", "No loading point and door have been assigned to the warehouse stop", "The freight order has not yet been scheduled by the VSR optimizer"], a:1, e:"E04 (Execute an Integrated Warehouse and Transportation Process) explains that one side must lead the integration and in a transportation-driven process the outbound delivery order stays blocked until the transportation team indicates readiness for warehouse processing. The block is lifted after the items are set to Ready for Warehouse Processing." },
+  { u:"s7", q:"In PPF output management, which condition decides the point in time at which an action is executed?", o:["The scheduling condition", "The spool condition", "The update condition", "The starting condition"], a:3, e:"S4611 (Output Management Conditions) explains that the scheduling condition answers why an action is executed, while the starting condition is checked just before execution and defines when, for example on save or one day before pick-up." },
+  { u:"s7", q:"A goods issue of an outbound delivery can only be associated with the execution of a freight order covering which part of the transport?", o:["The first stage of the transport", "The last stage of the transport", "Any stage that contains a warehouse stop", "The main carriage stage only"], a:0, e:"S48600 (Posting Goods Issue and Goods Receipt) states that goods issue for an outbound delivery can only be associated with a freight order covering the first stage, while goods receipt for an inbound delivery relates to the last stage." },
+  { u:"s7", q:"Two freight units of one outbound delivery are planned on different freight orders. What does the system do?", o:["It rejects the second freight order assignment", "It merges both freight orders into one document", "It splits the original delivery in two", "It keeps the delivery and sets an execution block"], a:2, e:"E04 (Trigger a Planning-related Delivery Split) shows the system automatically splitting the original delivery so each freight order and freight unit has its own delivery. S48600 (Delivery Change and Split) says the split is required when freight units of one delivery go to different freight orders." },
+  { u:"s8", q:"In S4TM3, the strategic freight procurement process is divided into four steps. Which sequence is correct?", o:["Prepare RFQ, evaluate responses and optimize, submit RFQ, generate agreements", "Submit RFQ, prepare RFQ, generate agreements, evaluate responses and optimize", "Prepare RFQ, submit RFQ, evaluate responses and optimize, generate agreements", "Prepare RFQ, submit RFQ, generate agreements, evaluate responses and optimize"], a:2, e:"S4TM3, Unit 6 Process Steps. The four steps are Prepare RFQ, Submit RFQ, Evaluate responses and optimize, and Generate agreements." },
+  { u:"s8", q:"A shipper sets a target amount of 1000 USD with a tolerance of 10% in a calculation sheet. For which carrier rate does the shipper not have to consider the carrier when awarding?", o:["Any rate higher than 1100 USD", "Any rate higher than 1010 USD", "Any rate lower than 900 USD", "Any rate higher than 1000 USD"], a:0, e:"H08, Strategic Freight Procurement, Rating structure. With a target of 1000 USD and a tolerance of 10%, a proposed rate higher than 1100 USD means the carrier need not be taken into consideration." },
+  { u:"s8", q:"What happens to the numbers on a published freight agreement RFQ master when you create a new negotiation round?", o:["The round number goes up by 1 and the version number is kept as it was", "The round number is kept as it was and the version number goes up by 1", "Both the round number and the version number are set back to zero again", "The round number goes up by 1 and the version resets to zero"], a:3, e:"H08, Requesting of Quotations for Transportation Services, Negotiation Rounds and RFQ Versions. A new negotiation round updates the number of negotiation rounds by 1 and resets the version number to zero, so the latest round always has a clean version." },
+  { u:"s8", q:"Where must the carriers taking part in strategic freight procurement be maintained in the freight agreement master RFQ?", o:["On each RFQ item, because a carrier can be added on a separate item", "On the header, from where carriers can be deleted on single items", "In the individual RFQs, once the master RFQ has been approved by the head of purchasing", "In the target share strategy, before the master RFQ is created in the system"], a:1, e:"S4TM3, Unit 6, RFQ Carrier Definition. All carriers must first be maintained on the header level, and a carrier cannot be added on a separate item; carriers can only be deleted from an item." },
+  { u:"s8", q:"How does the award confirmation deadline in a freight agreement RFQ master work?", o:["It is a hard confirmation, and carriers that miss it are rejected automatically by the system", "It is a binding confirmation that blocks the creation of the freight agreement until it arrives", "It is a soft confirmation, and carriers are not rejected if they miss it", "It is a confirmation that applies only to carriers that use TM themselves as their own system"], a:2, e:"H08, Award Confirmation, Features. The confirmation is only a soft confirmation; the system does not reject carriers that do not respond within the deadline, and the shipper can still confirm capacities with them offline." },
+  { u:"s8", q:"What does the system do automatically when you accept the preferred target share strategy in the comparison cockpit?", o:["It calculates the confirmed capacity in the RFQ master", "It creates the individual RFQs for all the carriers again", "It publishes a new negotiation round to all the carriers", "It posts the estimated spend as actual charges to orders"], a:0, e:"H08, Requesting of Quotations for Transportation Services, Preferred Target Share Strategy. Accepting the preferred strategy automatically calculates the confirmed capacity from the optimizer's target share; it can be changed manually before agreements are created. S4TM3 adds that the RFQ status is set to Awarded." },
+  { u:"s8", q:"For which responses can you compare directly in TM without the optimizer, and how are carriers ranked?", o:["Charge types with rate tables, ranked by the highest promised capacity", "All charge types, with the optimizer proposing the target shares for carriers", "Charge types with local rate tables only, shown in a response comparison graph", "Charge types with flat amounts, ranked by lowest quoted rate"], a:3, e:"H08, Post-Bid Analysis, Manual Response Comparison. Manual comparison directly in TM works only for charge types with flat amounts, and the system ranks carriers by the lowest quoted rate per charge type." },
+  { u:"s8", q:"Which organizational units can be assigned to a freight agreement RFQ master?", o:["Purchasing group, purchasing office or company", "Purchasing organization, company or corporate", "Purchasing organization, purchasing group or corporate", "Company, corporate or purchasing office"], a:1, e:"H08, Freight Agreement RFQ Master, General Data. Only a purchasing organization, company or corporate can be assigned; a purchasing group or purchasing office cannot." },
+  { u:"s8", q:"What must be set up for each carrier that is to collaborate with the shipper without using TM?", o:["A business partner with the role Carrier and a collaboration user for it", "A business partner with the role Carrier and a TM license on the carrier side", "A freight agreement with the carrier and a published tendering plan already in place", "A collaboration user that is not assigned to any business partner of the shipper"], a:0, e:"H10, Carrier Collaboration, Prerequisites. A business partner with the role Carrier is created, and a collaboration user is defined in the Maintain Collaboration Users app for that business partner." },
+  { u:"s8", q:"In the Manage Freight RFQs app, when can a carrier accept a freight RFQ by proposing changes to price, currency or dates?", o:["When the carrier already has a freight agreement with the shipper in place", "When the freight RFQ is still open after the response deadline has passed", "When the shipper has configured the tendering settings to allow proposed changes", "When the freight quotation has already been awarded to the carrier"], a:2, e:"H10, Freight Request for Quotation. Accepting with proposed changes is available only if the shipper has configured the tendering settings to allow it." },
+  { u:"s9", q:"A BASE rate table has scale levels up to 5 tons at USD 50 absolute, up to 7 tons at USD 14 per ton, up to 10 tons at USD 13 per ton and up to 15 tons at USD 12 per ton. What does the Clipping calculation method charge for a 12-ton load?", o:["USD 144", "USD 139", "USD 141", "USD 156"], a:2, e:"S4TM3, Clipping Example. Clipping works through the scale levels (50 + 28 + 39 + 24) for USD 141, while without clipping the 12 tons fall into the up to 15 tons level at USD 12 per ton, which gives USD 144." },
+  { u:"s9", q:"In scale maintenance, what does a scale of type Base scale mean?", o:["The scale levels apply from a certain value upward (>=)", "The scale levels apply up to a certain value (<=)", "The scale levels apply for exactly one value (=)", "The scale levels apply only to non-numeric values such as regions"], a:0, e:"S4TM3, Scale Creation Data and Scale Template Fields. Base scale means from a certain value and upwards (>=), To Scale means up to a certain value (<=) and Same Scale means exactly one value (=)." },
+  { u:"s9", q:"How does TM distinguish gross weight from net weight when both belong to the scale base Weight?", o:["They use two different scale bases, one for each type of weight that is charged", "They share one calculation base and differ only by the rounding profile that is applied", "They use two scales that are defined with different units of measure in the system", "They share the scale base Weight but have calculation bases such as W1 and W2"], a:3, e:"S4TM3, Calculation Base. Gross and net weight both correspond to the scale base Weight, but they are different charge aspects and therefore get different calculation bases, for example W1 for gross weight and W2 for net weight." },
+  { u:"s9", q:"Which agreement is used to calculate the transportation charges billed to you by your carrier?", o:["Forwarding agreement", "Freight agreement", "Internal agreement", "Customer agreement"], a:1, e:"S4TM3, Agreements Overview. Forwarding agreements calculate charges billable to your customer, freight agreements calculate charges billable to you by your carrier, and internal agreements calculate charges between organizations of the same company." },
+  { u:"s9", q:"To which objects in SAP S/4HANA are charge types, charge categories and charge subcategories mapped?", o:["SD sales order types and MM purchasing groups and plants", "SD output conditions and MM material master records and plants", "SD pricing condition types and MM service activities", "SD partner functions and MM vendor account groups"], a:2, e:"S4TM3, Charge Types. They are mapped to pricing condition types in SAP Sales and Distribution used for customer billing and to service activities in SAP Materials Management for carrier invoice processing." },
+  { u:"s9", q:"A calculation profile has the agreement determination type Minimum Charges. How does the system pick the agreement item?", o:["It finds the final amounts of all agreement items and takes the lowest", "It takes the item with the highest agreement priority", "It lists all agreements and asks the user to select one per charge item", "It takes the first agreement where the leading charge type can be calculated"], a:0, e:"S4TM3, Manual Agreement Selection: Example Scenarios. With Minimum Charges the system finds the final amounts for all agreement items and chooses the item with the minimum final amount; Determine All Agreements is the option that lets the user select." },
+  { u:"s9", q:"How many dimensions can a rate table maintain, and what does S4TM3 say about using them?", o:["Up to 3 dimensions, with further scales modeled as separate calculation sheets", "Up to 7 dimensions, all of which should always be used", "Up to 14 dimensions, all of which should be used for accuracy", "Up to 14 dimensions, though this is not recommended"], a:3, e:"S4TM3, Rate Tables. You can maintain up to 14 dimensions in a rate table, but this is not recommended; options such as a rate table determination rule reduce the number of dimensions." },
+  { u:"s9", q:"In exercise E05 the rates of rate table BASE_RATE_00 are raised by 10% for calendar year 2025 with Update Rates. What happens to the initial validity period?", o:["It is replaced by one period for 2025 that holds the new rates", "It is split into three periods, and only 2025 has new rates", "It is split into two periods with all later years using the new rates", "It stays unchanged and a separate rate table is created for 2025"], a:1, e:"E05, Work with Rate Tables. The initial validity period was divided into three periods (2021 to 2024 and from 2026 with the old rates, 2025 with the new rates); rates for destination country AT rose from 120 EUR and 60 EUR to 132 EUR and 66 EUR." },
+  { u:"s9", q:"In E05 the Handling Charge has the calculation resolution base PRODUCT. What does this mean in the freight order?", o:["The charge is calculated once for the whole freight order header", "The charge is calculated once for each stage of the freight order", "The charge line is applied once for each product", "The charge is calculated once for each container that is used"], a:2, e:"E05, Explain a Calculation Sheet. With the resolution base PRODUCT the charge line is applied multiple times in the freight order, once for each transported product." },
+  { u:"s9", q:"A calculation profile is assigned both to the purchasing organization and to the carrier business partner role. Which profile does the system apply?", o:["Only the one on the business partner role", "Only the profile assigned to the organizational unit", "Both profiles, with the higher charge being used", "Neither profile, so the freight order cannot be saved"], a:0, e:"S4TM3, Calculation Profile Assignment. If a profile is assigned to an organizational unit and to a business partner role, only the one assigned to the business partner role is applied; a profile cannot be assigned to a business partner alone." },
+  { u:"s10", q:"Which TM document is posted to SD so that an invoice is sent to a customer for transportation services?", o:["Freight settlement document", "Forwarding settlement document", "Settlement management document", "Service entry sheet document"], a:1, e:"H09, Forwarding Settlement Document, defines the FWSD as a document posted to SD to request the creation of an invoice for a customer. The freight settlement document goes to MM instead." },
+  { u:"s10", q:"What does the system create in MM when a freight settlement document is posted?", o:["A billing document and a customer invoice", "A carrier invoice and a dispute case item", "A sales order and an outbound delivery", "A purchase order and a service entry sheet"], a:3, e:"H09, Freight Settlement Document, states that on posting, a purchase order for services and a service entry sheet are created with the values of the TM charge lines. They are the basis for invoice verification." },
+  { u:"s10", q:"In which life cycle status can a freight settlement document be reversed?", o:["Invoice Verified", "Posted", "Ready for Accruals", "Posting Started"], a:0, e:"H09, Reversing a Freight Settlement Document, says you can only reverse the document when it has the life cycle status Invoice Verified." },
+  { u:"s10", q:"A freight order with two deliveries has a net amount of USD 1000 and a cost distribution of USD 700 and USD 300. What amount does the purchase order created on posting carry?", o:["USD 700", "USD 300", "USD 1000", "USD 1700"], a:2, e:"H09, Cost Distribution for Shippers, shows that posting creates a purchase order and a service entry sheet for USD 1000, while the settlement management document carries USD 700 and USD 300 as item amounts." },
+  { u:"s10", q:"Which cost distribution method suits a resolution base that includes containers or rail cars?", o:["Direct", "Hierarchical", "Proportional", "Cascading"], a:1, e:"S48600, Cost Distribution, says the Hierarchical method is used when the resolution base includes containers or rail cars, so charges are distributed to the container level first and then to the line item level." },
+  { u:"s10", q:"An LSP delivers 7 forwarding orders on one trailer unit and leaves the Settlement Basis field empty in the agreement item. How does TM settle them?", o:["With one rate for the whole journey of the truck", "With one rate for the container item of a booking", "With one rate for each execution stage", "With a rate for each forwarding order"], a:3, e:"H09, Execution-Based Settlement, says that without Trailer Unit in the Settlement Basis field the system rates and settles each of the 7 forwarding orders individually." },
+  { u:"s10", q:"For a buyer's consolidation, what does the system try if it finds no agreement line item with the BCO setting?", o:["A line with shipping type FCL", "A line with shipping type LCL", "A line with a trailer unit settlement basis", "A line with a route-based settlement basis"], a:0, e:"H09, Buyer's Consolidation Settlement, Settlement Fallback, says the system looks for an agreement line with a shipping type of FCL (full container load) when no BCO line exists." },
+  { u:"s10", q:"A gateway receives a carrier invoice of USD 2000 and bills the export station USD 2200 based on internal rates. What is the gateway's result?", o:["A loss of USD 200", "A loss of USD 2200", "A profit of USD 200", "A profit of USD 2200"], a:2, e:"H09, Internal Settlements, states that CFS-RTM receives an invoice for USD 2000 but charges STA-NEU USD 2200 on internal rates, so it makes USD 200 profit. Settlement on actual costs would give no profit." },
+  { u:"s10", q:"SD is on an external system and posting of an FWSD fails. Where do you check the error logs of the enterprise service message?", o:["Transaction MIRO", "Transaction /SCMTMS/SFIR_CREATE", "Transaction SXI_MONITOR", "Transaction WLFLTM2"], a:2, e:"H09, Forwarding Settlement, process step 4, says that with SD on an external S/4HANA or SAP ERP system you check the error logs for the enterprise service message in transaction SXI_MONITOR." },
+  { u:"s10", q:"Which condition must be met before the Posting of Carrier Invoices function sends a carrier invoice to MM?", o:["The carrier invoice has the lifecycle status Rejected", "The freight orders have the invoicing status Not Invoiced", "The carrier invoice has the consistency status Inconsistent", "Any existing dispute case has the lifecycle status Resolved"], a:3, e:"S48600, Dispute Management for Freight Settlement, lists the conditions: no dispute case exists or it is Resolved, the invoice is not Rejected, the freight orders are Completely Invoiced, the invoice is Not Blocked and Consistent." },
+  { u:"s11", q:"Integration based on the freight order in Advanced Shipping and Receiving does not use which EWM objects?", o:["The EWM warehouse task and handling unit", "The EWM door and loading point", "The EWM transportation unit and vehicle", "The EWM delivery order and wave"], a:2, e:"H11, Integration Based on Freight Order, states that the process is based on the freight order and does not use the EWM transportation unit (TU) or the EWM vehicle." },
+  { u:"s11", q:"What must you create when you use Lean Warehouse Management in Advanced Shipping and Receiving?", o:["A placeholder warehouse", "An EWM transportation unit", "A separate freight booking", "An additional shipping point"], a:0, e:"H11, Lean Warehouse Management, says you need to create a place holder warehouse that ensures the document flow in TM." },
+  { u:"s11", q:"Which function can not be performed based on a consignment order?", o:["Subcontracting", "Charge calculation", "Shipment tracking", "Tendering"], a:3, e:"H11, Consignment Order, Use, says you can perform subcontracting, charge calculation, settlement with the carrier and shipment tracking, but it is not possible to perform tendering based on a consignment order." },
+  { u:"s11", q:"Which Advanced Shipping and Receiving processes are enabled in a decentralized EWM and TM deployment?", o:["Only the inbound process", "Only the outbound process", "Both inbound and outbound", "Only returns processes"], a:1, e:"H11, Advanced SR for Decentralized EWM and TM, states that it enables the outbound process and that inbound features in Advanced Shipping and Receiving are not supported." },
+  { u:"s11", q:"Which location type represents a loading point in the master data prerequisites for Advanced Shipping and Receiving?", o:["Location type 1200", "Location type 1003", "Location type 1100", "Location type 1300"], a:0, e:"H11, Prerequisites for Advanced Shipping and Receiving, says you must define a location with location type 1200 (loading point). Location type 1003 is the shipping point flagged as relevant." },
+  { u:"s11", q:"In a transport-driven outbound process with decentralized EWM and TM, what releases the blocked outbound delivery order for warehouse activities?", o:["Posting the goods issue for the delivery in the warehouse", "Setting the EWM outbound delivery order to Ready for Shipping", "Setting the freight order to Ready for Warehouse Processing", "Reporting the truck's arrival and check-in at the gate door"], a:2, e:"H11, Transport-Driven Process, explains that the delivery order is blocked until planning is complete, and that the status change of the freight order from In Process to Ready for Warehouse Processing releases it." },
+  { u:"s11", q:"To set a warehouse door to Arrived at Door, which handling execution status must the warehouse stop have?", o:["Checked Out", "Checked In", "Loaded", "Departed"], a:1, e:"H11, Explanation of Statuses, Warehouse Door Status, says Arrived at Door can only be set if the door is not occupied and the handling execution status of the stop is Checked In." },
+  { u:"s11", q:"When is a delivery split possible again after warehouse activities have started?", o:["When picking has started in EWM", "When the Warehouse Processing Status is In Process", "When the truck has checked in at the gate", "When the Warehouse Processing Status is Completed"], a:3, e:"H11, Delivery Split, says that during warehouse activities a split is not possible, and that after all activities are completed and the Warehouse Processing Status is Completed a split is possible again." },
+  { u:"s11", q:"Which unexpected events can SAP Event Management track for freight units and report to TM as alerts?", o:["Loading begin and loading end", "Departure and arrival at destination", "Delay and damage", "Unloading begin and unloading end"], a:2, e:"H11, Tracking of Freight Units, lists Scheduled, Loading Begin, Loading End, Departure, Arrival at Destination, Unloading Begin and Unloading End as expected events, and Delay and Damage as unexpected events that send an alert to TM." },
+  { u:"s11", q:"In the Advanced Shipping and Receiving inbound process, on which document is the customs activity with SAP GTS based?", o:["The freight order", "The consignment order", "The forwarding order", "The scheduling agreement"], a:0, e:"H11, GTS Integration in Advanced Shipping and Receiving, says that in the outbound process customs activity is based on either the consignment or the freight order, and in the inbound process on the freight order." },
+  { u:"s12", q:"How do the two dangerous goods processing options in TM relate to each other", o:["They can run side by side in the same client", "They apply to different transportation modes", "They are mutually exclusive, only one is active", "They are chosen separately per business document"], a:2, e:"S48600, Dangerous Goods, states that DG processing based on PS&S and DG processing based on product compliance are mutually exclusive, so only one can be activated at a time." },
+  { u:"s12", q:"Who creates document-based dangerous goods records in the PS&S-based processing", o:["Logistics service providers, at item level", "Shippers, as part of the product master data", "The system itself, from regulatory content only", "Carriers, once they accept the freight order"], a:0, e:"H12, Dangerous Goods Processing Based on PS&S: when an LSP receives DG data from a shipper, it enters the data by creating a document-based dangerous goods record at item level. Shippers create the DG master data." },
+  { u:"s12", q:"What must you still do if you want to enter DG data in a business document without performing any DG checks", o:["Activate the points check in the FU building rule", "Assign the methods FUB_DG and VSR_DG to a strategy", "Load SAP EHS Regulatory Content into TM first", "Assign a DG profile to the business document type"], a:3, e:"H12, Configuration of Dangerous Goods Processing: even without DG checks, a DG profile still has to be assigned to the business document type." },
+  { u:"s12", q:"Which methods are assigned to the process controller strategy to use DG checks during FU building and VSR optimization", o:["DG_ADR and DG_VSR", "FUB_DG and VSR_DG", "FU_CHECK and VSR_CHECK", "FUB_PS and VSR_PS"], a:1, e:"H12, Configuration of Dangerous Goods Processing: to use the DG checks during FU building and VSR optimization you assign the methods FUB_DG and VSR_DG to the relevant process controller strategy." },
+  { u:"s12", q:"A limit of 1000 points per freight unit is set and three items with 500 points each are to be transported. How many freight units does the system generate", o:["One freight unit holding all three items", "Three freight units, one per item", "Two freight units", "No freight unit, the items are blocked"], a:2, e:"H12, ADR 1.1.3.6 Points Check Calculation: with a limit of 1000 points per freight unit and three items of 500 points each, the system generates two freight units." },
+  { u:"s12", q:"How are points calculated for a road freight order under the ADR 1.1.3.6 points check", o:["As the maximum of the points of each stage", "As the sum of the points of all assigned items", "As the average of the points of each stage", "As the points of the first stage only"], a:0, e:"H12, ADR 1.1.3.6 Points Check Calculation: for the road freight order the points are the maximum of the points of each stage, whereas FWO, FWQ, OTR and FU use the sum of the assigned items." },
+  { u:"s12", q:"What happens to a UI profile for document-based DG data that is already in use", o:["It can be changed after a new release", "It is deleted once the document is saved", "It switches over to the inbound profile", "It cannot be changed, but can be copied"], a:3, e:"H12, Definition of UI Profiles for Document-Based DG Data: a profile in use cannot be changed, but you can create a new profile by copying an existing one." },
+  { u:"s12", q:"In which order does the Dangerous Goods Content Loader recommend loading data", o:["Regulations first, then the phrases", "Phrases first, then the regulations", "Customizing data first, then the phrases", "Both together in a single step"], a:1, e:"H12, Loading Dangerous Goods Content: it is recommended to load the phrases before loading the regulations." },
+  { u:"s12", q:"What does the Prohibited or Unlimited transport restriction flag mean for the points calculation", o:["Points are doubled for the product", "Points are taken from the item gross weight", "No points are calculated for the product", "Points are calculated at header level only"], a:2, e:"H12, Transport Restrictions: Prohibited means not eligible under ADR 1.1.3.6 and Unlimited means not considered in the points calculation; if either flag is set, no points for the product are calculated." },
+  { u:"s12", q:"Where can a user view the IATA shipper's declaration for dangerous goods that the system generates from a freight booking", o:["In the Output Management tab of the freight order", "In the Statuses tab of the forwarding order item", "In the Dangerous Goods tab of the freight unit item", "In the application log with the subobject DG"], a:0, e:"H12, Shipper's Declaration: the system generates the declaration from the DG master based on the freight booking and you can view it in the Output Management tab of the freight order." },
+  { u:"s13", q:"What can a user do on the cards of a TM analytics overview page", o:["Enter data directly into the cards", "Only view the data, the cards are read-only", "Run queries and searches on the card data", "Edit the underlying documents inside the card"], a:1, e:"H13, Analytics Overview Pages: the cards are read-only; you can't enter any information or perform queries or searches on them." },
+  { u:"s13", q:"What happens when you select a data point in a chart card of an overview page", o:["The overview page reloads with the previous month data", "The system opens the related document in edit mode now", "The card is removed from the overview page", "A detailed view opens, filtered to that data point"], a:3, e:"H13, Analytics Overview Pages: selecting the header takes you to a detailed view with all the unfiltered data, while selecting a data point takes you to a detailed view filtered to the information relevant to that data point." },
+  { u:"s13", q:"What kind of object is the CDS view that feeds an overview page", o:["A top-level consumption view over other CDS views", "A Customizing table that stores the card layout", "A BRFplus rule that selects the cards to display", "An enterprise service that sends events to the page"], a:0, e:"H13, CDS Views: the views feeding each overview page are top-level views called consumption views that contain other contributing CDS views and consist of key figures and attributes." },
+  { u:"s13", q:"How do the delivered time filters of the TM analytics CDS views work?", o:["They cover the current year on a rolling basis for all users", "They are fixed by SAP and cannot be changed by customers at all", "They cover two months and can be changed with metadata extensions", "They are set per user in the launchpad settings of each role"], a:2, e:"H13, Metadata Extensions to Replace Delivered Time Filters: the time filters contain the current and previous month on a two-month rolling basis and can be changed by using metadata extensions (SAP Note 2779334)." },
+  { u:"s13", q:"Which detailed view does the Invoicing Block Analysis card of the Cost Analysis overview page open", o:["Transportation Costs Detailed View", "Transportation Invoice Blocked Detailed View", "Freight Order Execution Status Detailed View", "Business Share Detailed View"], a:1, e:"H13, Cost Analysis: selecting the Invoicing Block Analysis card takes you to the Transportation Invoice Blocked Detailed View, while any other card takes you to the Transportation Costs Detailed View." },
+  { u:"s13", q:"What does the Weight Fulfillment Ratio card of Business Share Analysis show", o:["How much of its allocated weight share a carrier achieved", "How much of the vehicle capacity each freight order used", "How many freight orders each carrier delivered on time", "How much each carrier charged per kilogram of goods transported"], a:0, e:"H13, Business Share Analysis: the card shows how carriers performed in respect of total weight transported, that is, how much of their allocated share they achieved, for example 328,750kg out of 493,125kg (66.67%)." },
+  { u:"s13", q:"Which freight orders count as execution-relevant in the Life Cycle Status Analysis of Freight Order Execution Monitoring", o:["Those with status Completed and an arrival event", "Those with status New and no departure event", "Those with a planning block and a departure event", "Those In Execution (03) with no final arrival"], a:3, e:"H13, Freight Order Execution Monitoring: execution-relevant freight orders have the execution status In Execution (03) and have a departure event but no arrival event at the final destination." },
+  { u:"s13", q:"Which period of data does the input parameter P_TodayDate cause the system to retrieve", o:["The current day only", "The last twelve months from the system date", "The start of last month up to the system date", "The current calendar year up to the system date"], a:2, e:"H13, Main Input Parameters: the system uses the system date as P_TodayDate and retrieves information from the beginning of the previous month up to the system date." },
+  { u:"s13", q:"When does the Carrier On Time Performance card classify a freight order as on time", o:["When its first event is on time", "When all its events are classed as on time", "When at least half of its events are on time", "When its arrival event is on time"], a:1, e:"H13, Freight Order Execution Monitoring: a freight order is on time if all its events are classed as on time, otherwise it is classed as delayed." },
+  { u:"s13", q:"Is the use of TM analytics mandatory for the strategic freight procurement process", o:["No, it is not related to the master RFQ", "Yes, the master RFQ is built from the results", "Yes, but only for the carriers that are awarded", "No, because analytics cannot read the agreements"], a:0, e:"S4TM3, Determination of Procurement Needs: the analysis of historic data and the forecast are not related to the freight agreement master RFQ, so the use of SAP analysis tools is not mandatory for the SFP process." },
+  { u:"s14", q:"According to H14, what is the process component TransportationOrderProcessing defined as", o:["The settlement of freight charges with the carriers involved", "The planning of freight units into freight orders for execution", "The ordering of transportation services from carriers", "The processing of requests from an ordering party for service"], a:2, e:"H14, Transportation Order Processing, Definition. The definition is the ordering of transportation services from carriers. The request-from-an-ordering-party definition belongs to TransportationRequestProcessing." },
+  { u:"s14", q:"When a shipper sends a transportation order to a carrier, in what form does the carrier receive it", o:["As a transportation request", "As a delivery proposal", "As a freight settlement document", "As a forwarding agreement"], a:0, e:"H14, Transportation Order Processing. The carrier receives the order in the form of a transportation request and is then expected to send a confirmation to the shipper." },
+  { u:"s14", q:"In the Delivery Integration scenario of TransportationRequestProcessing, how is a delivery represented in transportation request processing", o:["As an order-based transportation requirement for a sales order", "As a forwarding quotation for a customer request", "As a freight booking sent to a carrier", "As a delivery-based transportation requirement"], a:3, e:"H14, Transportation Request Processing. In Delivery Integration a delivery is represented by a delivery-based transportation requirement (DTR); orders are represented by order-based requirements (OTR)." },
+  { u:"s14", q:"In Forward Error Handling for inbound operations, which error category stands for Determination and Conversion Error", o:["PRE", "DCE", "LRE", "TEE"], a:1, e:"H14, Error Handling. The categories used are DCE (Determination and Conversion Error), PRE (Processing Error) and PRE.TEE.LRE (Lock Request Error)." },
+  { u:"s14", q:"What does the inbound operation Change Transportation Order based on Export Declaration Confirmation add to the order when creation is confirmed", o:["The export declaration ID and the MRN", "The customs tariff number and the carrier invoice number", "The loading appointment and the waybill number issued", "The trade compliance result and the credit limit status"], a:0, e:"H14, Change Transportation Order Based on Export Declaration Confirmation, Features. The operation adds the export declaration ID and the MRN to the order and updates its customs status." },
+  { u:"s14", q:"What is the mode of the inbound operation GetTransportationDocumentURI", o:["Asynchronous with idempotency", "Asynchronous without queues", "Synchronous", "Batch"], a:2, e:"H14, Other Web Services, GetTransportationDocumentURI. Category Inbound and mode Synchronous; it is triggered by the outbound operation of the same name in SAP ERP." },
+  { u:"s14", q:"In BRFplus, what is the input of a rule called", o:["Result", "Catalog", "Action", "Context"], a:3, e:"H15, Use. The rule input is known as context and the rule output is called result; both consist of data objects of type element, structure or table." },
+  { u:"s14", q:"What results in BRFplus when an element data object rather than a structure is assigned to a table data object", o:["A deeply nested structure of fields", "A one-column table, a simple list", "A table without any defined fields", "A table made of exactly two elements"], a:1, e:"H15, Data Objects and Types. If an element is assigned to a table instead of a structure, the result is a one-column table, that is a simple list." },
+  { u:"s14", q:"How does a BRFplus decision table expression evaluate its rows at runtime", o:["Row by row from the top, stopping at the first fully true row", "All rows in parallel, returning the result of the last matching row found", "Row by row from the bottom, stopping at the most general matching row", "Only the first row, falling back to a default result when it does not match"], a:0, e:"H15, Decision Table Expression. Rows are processed sequentially from the first row; when all cells in a row are true, evaluation stops and that row's result is returned. Hence the most specific conditions should come first." },
+  { u:"s14", q:"What is the purpose of a catalog in BRFplus", o:["To store the trace of every function execution", "To transport active objects between systems as XML", "To generate web services for the calling application", "To filter the repository for business users"], a:3, e:"H15, Catalog. A catalog simplifies rule maintenance by hiding the repository and displaying only the relevant objects; it serves as a filter for all objects in the repository." },
+  { u:"s15", q:"Which set lists the five dimensions of core described in MCC100", o:["Processes, extensions, applications, integrations, users", "Processes, extensions, data, interfaces, hardware", "Processes, modifications, data, integrations, operations", "Processes, extensions, data, integrations, operations"], a:3, e:"MCC100, Analyzing Clean Core Components. By core the course means the dimensions Processes, Extensions, Data, Integrations and Operations; SL_RISE419 lists the same five." },
+  { u:"s15", q:"How does MCC100 describe a newly provisioned SAP Cloud ERP system with regard to clean core", o:["It is clean by definition, so the goal is to keep it clean", "It must first pass a dedicated cleansing project before it counts as clean", "It is clean only after all existing custom code has been migrated", "It is clean only if it is provisioned as the private edition"], a:0, e:"MCC100, Clean Core Components. A newly provisioned SAP Cloud ERP system is clean per definition, and the goal for the customer in that case is to keep the core clean." },
+  { u:"s15", q:"Which implementation approach is NOT possible for SAP S/4HANA Cloud Public Edition according to MCC100", o:["Greenfield implementation as a new installation", "Starting with a clean slate in a provisioned system", "Brownfield implementation as a system conversion", "Designing processes on current best practices"], a:2, e:"MCC100, Describing Implementation Types and Clean Core. A brownfield implementation upgrades an existing system to private edition or on-premise; the public edition cannot be chosen in the context of a brownfield approach." },
+  { u:"s15", q:"Which statement does MCC100 give as a misconception about clean core", o:["Clean core also affects data, integration and operations", "SAP BTP is the only way to keep the core clean", "Clean core contributes to a reduction of TCO", "Tier 1 extensibility also keeps the core clean"], a:1, e:"MCC100, Some Misconceptions About Clean Core. SAP BTP is needed for side-by-side extensions, but key user and developer extensibility on stack are also possible with SAP Cloud ERP." },
+  { u:"s15", q:"In MCC100, where are type 3 extensions created", o:["As key user extensions inside SAP S/4HANA Cloud", "As developer extensions inside SAP S/4HANA Cloud", "As classic ABAP modifications of delivered code", "As side-by-side extensions on SAP BTP"], a:3, e:"MCC100, Extensions Don't Break Upgrades. On-stack extensions are Key User (type 1) or Developer (type 2); side-by-side extensions are created within SAP BTP (type 3)." },
+  { u:"s15", q:"In the Clean Core Level Concept, which extensions belong to Level B", o:["Those using an unreleased API that SAP deems stable", "Those using only publicly released and stable interfaces", "Those using APIs with a changelog because they may change", "Those using explicitly non-recommended objects or techniques"], a:0, e:"MCC100, Clean Core Level Concept. Level B uses an unreleased API (like a BAPI) deemed by SAP to be stable and upgrade safe; Level A uses released interfaces, Level C relies on APIs with a changelog, Level D is not considered clean." },
+  { u:"s15", q:"According to MCC100, which SAP solution best addresses data privacy compliance through automated archiving and retention", o:["SAP Master Data Governance for central hubs", "SAP Datasphere for data warehousing", "SAP Information Lifecycle Management", "SAP Information Steward for data analysis"], a:2, e:"MCC100, Data Privacy Compliance. Data privacy compliance is best addressed through SAP Information Lifecycle Management, which automates data archiving and retention and decommissioning of legacy systems." },
+  { u:"s15", q:"How does MCC100 treat RFC and IDoc for integrations", o:["As the preferred technologies for all integrations", "As recommended only if absolutely necessary", "As required for event-based scenarios", "As replaced entirely by SAP Event Mesh"], a:1, e:"MCC100, Avoid Legacy APIs And Their Legacy Extension Options. RFC and IDoc are only recommended if absolutely necessary; OData and SOAP align better with clean core principles." },
+  { u:"s15", q:"What are the three core components of the RISE with SAP Methodology", o:["Discovery toolkit, quality gates and dashboards for each phase", "Roadmap viewer, success plan and runbook for every project team", "Onboarding calls, handover artifacts and partner workshops", "Standardized framework, integrated toolchain, expert guidance"], a:3, e:"SL_RISE419, The RISE with SAP Methodology. The core components are a standardized framework, an integrated toolchain and expert guidance through end-to-end engagement." },
+  { u:"s15", q:"How many personalized onboarding sessions does SAP's Onboarding Advisor host in the Prepare phase", o:["Four", "Two", "Three", "Six"], a:0, e:"SL_RISE419, Standardized Framework and Prepare Phase. SAP's Onboarding Advisor hosts four personalized sessions, from Get Started with SAP to reviewing the Clean Core Quality Gate assessment." },
+];
+</script>
+
+<!-- ============================================================
+     ENGINE — verbatim. Never edit anything below this line.
+     ============================================================ -->
+<header class="mast">
+  <h1 id="m-title"></h1>
+  <p class="sub" id="m-sub"></p>
+  <p class="lede" id="m-lede"></p>
+</header>
+
+<div class="filters" id="filters" role="group" aria-label="Filter by session"></div>
+
+<div class="bar">
+  <span class="pos" id="pos"></span>
+  <label><input type="checkbox" id="shuffle"> <span id="shuffle-label">Shuffle</span></label>
+  <span class="score" id="score"></span>
+</div>
+<div class="track"><i id="track"></i></div>
+
+<div id="stage"></div>
+
+</div>
+<script>
+(function(){
+  "use strict";
+  var F = document.getElementById("filters");
+  var stage = document.getElementById("stage");
+  var posEl = document.getElementById("pos");
+  var scoreEl = document.getElementById("score");
+  var trackEl = document.getElementById("track");
+  var shuffleEl = document.getElementById("shuffle");
+
+  var filter = "all", list = [], i = 0, answers = {}, order = null;
+
+  var L = { questionnaire:"Questionnaire", filter:"Filter by session", shuffle:"Shuffle",
+            empty:"No questions compiled yet.", correct:"correct", complete:"Complete",
+            question:"Question {n} of {total}", right:"Correct", wrong:"Not quite",
+            back:"Back", skip:"Skip", next:"Next", results:"See results",
+            summary:"{right} of {done} answered correctly", skipped:"{n} skipped",
+            revisit:"Worth revisiting", retry:"Retry the missed ones", restart:"Start over" };
+  if (typeof LABELS === "object" && LABELS){
+    for (var lk in LABELS){ if (LABELS[lk]) L[lk] = String(LABELS[lk]); }
+  }
+  function fmt(s, v){ return s.replace(/\{(\w+)\}/g, function(m, k){ return k in v ? v[k] : m; }); }
+  F.setAttribute("aria-label", L.filter);
+  document.getElementById("shuffle-label").textContent = L.shuffle;
+
+  function filled(v){ return (v && !/^\{.*\}$/.test(v)) ? v : ""; }
+  var heading = filled(SUBJECT) ? filled(SUBJECT) + " — " + L.questionnaire : L.questionnaire;
+  document.title = heading;
+  document.getElementById("m-title").textContent = heading;
+  document.getElementById("m-sub").textContent = filled(QUIZ_SUBTITLE) || filled(DOMAIN);
+  document.getElementById("m-lede").textContent = filled(QUIZ_LEDE);
+
+  function esc(t){
+    return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function key(q){ return q.u + "|" + BANK.indexOf(q); }
+
+  FILTER_DEFS.forEach(function(f){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = f.label;
+    b.setAttribute("aria-pressed", f.k === filter ? "true" : "false");
+    b.addEventListener("click", function(){
+      if (filter === f.k) return;
+      filter = f.k; order = null; i = 0; build(); render();
+    });
+    F.appendChild(b);
+  });
+
+  shuffleEl.addEventListener("change", function(){ order = null; i = 0; build(); render(); });
+
+  function build(){
+    list = BANK.filter(function(q){ return filter === "all" || q.u === filter; });
+    if (shuffleEl.checked){
+      if (!order){
+        order = list.map(function(_, n){ return n; });
+        for (var n = order.length - 1; n > 0; n--){
+          var r = Math.floor(Math.random() * (n + 1)), t = order[n];
+          order[n] = order[r]; order[r] = t;
+        }
+      }
+      list = order.map(function(n){ return list[n]; });
+    }
+    var btns = F.querySelectorAll("button");
+    FILTER_DEFS.forEach(function(f, n){
+      btns[n].setAttribute("aria-pressed", f.k === filter ? "true" : "false");
+    });
+  }
+
+  function answered(){
+    return list.filter(function(q){ return answers[key(q)] !== undefined; });
+  }
+  function correctCount(){
+    return list.filter(function(q){ return answers[key(q)] === q.a; }).length;
+  }
+
+  function render(){
+    if (!list.length){
+      posEl.textContent = ""; scoreEl.textContent = ""; trackEl.style.width = "0";
+      stage.innerHTML = '<p class="empty">' + esc(L.empty) + '</p>';
+      return;
+    }
+    var done = answered().length;
+    scoreEl.innerHTML = "<b>" + correctCount() + "</b> / " + done + " " + esc(L.correct);
+    trackEl.style.width = (done / list.length * 100) + "%";
+
+    if (i >= list.length){ posEl.textContent = L.complete; return summary(); }
+
+    posEl.textContent = fmt(L.question, { n: i + 1, total: list.length });
+
+    var q = list[i], picked = answers[key(q)], accent = UNIT_ACCENT[q.u] || "";
+    var html = '<div class="card" style="--unit:' + accent + '">' +
+      '<p class="unit">' + esc(UNITS[q.u] || q.u) + '</p>' +
+      '<p class="stem">' + esc(q.q) + '</p><div class="opts">';
+
+    q.o.forEach(function(opt, n){
+      var cls = "";
+      if (picked !== undefined){
+        if (n === q.a) cls = "correct";
+        else if (n === picked) cls = "wrong";
+        else cls = "muted";
+      }
+      html += '<button type="button" class="' + cls + '" data-pick="' + n + '"' +
+              (picked !== undefined ? " disabled" : "") + '>' +
+              '<span class="k">' + "ABCD".charAt(n) + '</span><span>' + esc(opt) + '</span></button>';
+    });
+    html += "</div>";
+
+    if (picked !== undefined){
+      var good = picked === q.a;
+      html += '<div class="verdict ' + (good ? "good" : "poor") + '">' +
+        '<b>' + esc(good ? L.right : L.wrong) + '</b>' + esc(q.e) + '</div>';
+    }
+
+    html += '<div class="nav">' +
+      '<button type="button" data-nav="prev"' + (i === 0 ? " disabled" : "") + '>' + esc(L.back) + '</button>' +
+      '<div class="right">' +
+      (picked !== undefined
+        ? '<button type="button" class="primary" data-nav="next">' +
+          esc(i === list.length - 1 ? L.results : L.next) + '</button>'
+        : '<button type="button" data-nav="skip">' + esc(L.skip) + '</button>') +
+      '</div></div></div>';
+
+    stage.innerHTML = html;
+    wire();
+  }
+
+  function wire(){
+    stage.querySelectorAll("[data-pick]").forEach(function(b){
+      b.addEventListener("click", function(){
+        answers[key(list[i])] = parseInt(b.getAttribute("data-pick"), 10);
+        render();
+      });
+    });
+    stage.querySelectorAll("[data-nav]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var d = b.getAttribute("data-nav");
+        if (d === "prev") i = Math.max(0, i - 1);
+        else i = i + 1;
+        render();
+        window.scrollTo(0, 0);
+      });
+    });
+    stage.querySelectorAll("[data-act]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var a = b.getAttribute("data-act");
+        if (a === "restart"){ answers = {}; order = null; i = 0; build(); }
+        if (a === "review"){
+          var missed = list.filter(function(q){ return answers[key(q)] !== undefined && answers[key(q)] !== q.a; });
+          if (missed.length){ list = missed; answers = {}; i = 0; }
+        }
+        render();
+        window.scrollTo(0, 0);
+      });
+    });
+  }
+
+  function summary(){
+    var done = answered(), right = correctCount();
+    var missed = list.filter(function(q){ return answers[key(q)] !== undefined && answers[key(q)] !== q.a; });
+    var pct = done.length ? Math.round(right / done.length * 100) : 0;
+
+    var html = '<div class="summary">' +
+      '<p class="big">' + pct + '%</p>' +
+      '<p class="of">' + esc(fmt(L.summary, { right: right, done: done.length })) +
+      (done.length < list.length ? " · " + esc(fmt(L.skipped, { n: list.length - done.length })) : "") + '</p>';
+
+    if (missed.length){
+      html += "<h2>" + esc(L.revisit) + "</h2><ol>";
+      missed.forEach(function(q){ html += "<li>" + esc(q.q) + "</li>"; });
+      html += "</ol>";
+    }
+
+    html += '<div class="acts">' +
+      (missed.length ? '<button type="button" class="primary" data-act="review">' + esc(L.retry) + '</button>' : "") +
+      '<button type="button" data-act="restart">' + esc(L.restart) + '</button>' +
+      '</div></div>';
+
+    stage.innerHTML = html;
+    wire();
+  }
+
+  build();
+  render();
+})();
+</script>
+</body>
+</html>

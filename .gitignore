@@ -1,0 +1,31 @@
+# Machine-local settings — never pushed or pulled
+dev/local.json
+.claude/settings.local.json
+
+# Personal study notes — the folder ships empty, the notes stay local
+learning/session notes/*
+!learning/session notes/.gitkeep
+
+# Client project material — never leaves this machine
+projects/*
+!projects/.gitkeep
+
+# The archive — originals, replaced files, retired projects — stays on this machine;
+# only its empty folders ship
+/.archive/**
+!/.archive/**/
+!/.archive/**/.gitkeep
+
+# The landing zone — anything left here is unprocessed, never published
+src/uploads/*
+!src/uploads/.gitkeep
+
+# OS metadata
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Python artifacts from MarkItDown runs
+__pycache__/
+*.pyc
+.venv/

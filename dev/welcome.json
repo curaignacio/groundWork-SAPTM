@@ -1,0 +1,28 @@
+{
+  "greeting": "Welcome to the SAP TM Assistant — your AI companion for {DOMAIN}.",
+  "description": "This assistant covers {SCOPE}. Whether you're a {LEARNER_ROLE} building your knowledge, a {PRACTITIONER_ROLE} working on live projects, or a {MAINTAINER_ROLE} keeping the assistant up to date, it's here to help.",
+  "categories": {
+    "learning": {
+      "intro": "Tools for studying and self-assessment:",
+      "skills": [
+        { "command": "/chatQuiz", "description": "In-chat quiz on any topic from the source materials — adaptive, no files produced." },
+        { "command": "/sessionNotes", "description": "Capture structured notes after a study session, including reflections from a quiz." }
+      ],
+      "note": "The study guide and questionnaire are available as HTML files in the learning/ folder — open them in any browser."
+    },
+    "projects": {
+      "intro": "Tools for managing live client work:",
+      "skills": [
+        { "command": "/projectManager", "description": "Create project and item folders, handle file uploads and indexing, archive completed work." },
+        { "command": "/projectAssistant", "description": "Process meeting notes, track decisions and open questions, draft section by section, and write the deliverable from what you approved." }
+      ]
+    },
+    "maintenance": {
+      "intro": "Keeping the assistant up to date:",
+      "skills": [
+        { "command": "/repoSync", "description": "Pull the latest version from GitHub, or push your changes." }
+      ],
+      "note": "Source materials and learning content are updated by the maintainer in groundWork Creator; pull to get them."
+    }
+  }
+}

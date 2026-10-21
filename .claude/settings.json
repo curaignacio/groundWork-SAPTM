@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./projects/**/personal/**)",
+      "Edit(./projects/**/personal/**)",
+      "Read(./.archive/**)",
+      "Edit(./.archive/**)"
+    ]
+  }
+}

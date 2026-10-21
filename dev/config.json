@@ -1,0 +1,11 @@
+{
+  "learning_language": "English",
+  "podcast": {
+    "audience": "SAP TM consultant in training",
+    "format_tone": "natural back-and-forth; two distinct perspectives (one implementation/project-focused, one conceptual/framework-oriented); light and engaging; theory grounded in practice; prefer examples over definitions; avoid long numbers, keys, configuration paths; prioritize clarity over completeness",
+    "terminology": [
+      "always render \"S/4HANA\" as \"S-Four-Hannah\"",
+      "say the abbreviations OTR, DTR, FU, FO, FA, FSD, EWM and GTS letter by letter"
+    ]
+  }
+}
